@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellaris.exe — Astral Study OS & Wardrobe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #160d26;
+            --card-bg: #221538;
+            --border-purple: #483375;
+            --accent-purple: #9d73f5;
+            --accent-pink: #f573c4;
+            --accent-gold: #ffd750;
+            --text-light: #f3f0ff;
+            --text-dim: #ab9ec9;
+            --shadow: 6px 6px 0px #0b0514;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            image-rendering: pixelated;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: var(--bg-deep);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            background-image: radial-gradient(circle at 20% 30%, #301b57 0%, transparent 40%),
+                              radial-gradient(circle at 80% 70%, #291342 0%, transparent 50%);
+        }
+
+        /* Opening Splash Screen */
+        #intro-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-deep);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        #intro-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .intro-icon {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 1.25rem;
+            animation: floatIcon 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatIcon {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+
+        .intro-title {
+            font-size: 0.65rem;
+            color: var(--accent-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 2px 2px 0px #5c4113;
+        }
+
+        .pixel-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--accent-purple);
+            color: var(--text-light);
+            padding: 0.75rem 1.5rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.55rem;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #0b0514;
+            transition: all 0.1s;
+        }
+
+        .pixel-btn:hover, .pixel-btn.active {
+            background: var(--accent-pink);
+            border-color: #ff9ee2;
+            color: white;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #0b0514;
+        }
+
+        /* Window Container */
+        .window-frame {
+            max-width: 1150px;
+            width: 100%;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 3px solid var(--border-purple);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Window Title Bar */
+        .window-header {
+            background: #1a102e;
+            border-bottom: 2px solid var(--border-purple);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .window-title {
+            font-size: 0.6rem;
+            color: var(--accent-gold);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .win-btn {
+            width: 20px;
+            height: 20px;
+            background: var(--bg-deep);
+            border: 1.5px solid var(--border-purple);
+            font-size: 0.45rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        /* Top Metric Dashboard Bar */
+        .metrics-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            border-bottom: 2px solid var(--border-purple);
+        }
+
+        .metric-box {
+            padding: 0.75rem;
+            text-align: center;
+            border-right: 2px solid var(--border-purple);
+            background: #1a102e;
+        }
+
+        .metric-box:last-child {
+            border-right: none;
+        }
+
+        .metric-title {
+            font-size: 0.4rem;
+            color: var(--text-dim);
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-value {
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+        }
+
+        /* Navigation Tabs */
+        .nav-bar {
+            display: flex;
+            border-bottom: 2px solid var(--border-purple);
+            background: #281c44;
+            padding: 0.5rem;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: var(--card-bg);
+            border: 2px solid var(--accent-purple);
+            padding: 0.6rem 0.9rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.45rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #0b0514;
+        }
+
+        .nav-tab.active, .nav-tab:hover {
+            background: var(--accent-purple);
+            color: white;
+            box-shadow: 3px 3px 0px #0b0514;
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 1.5rem;
+            background: var(--bg-deep);
+            min-height: 520px;
+        }
+
+        .view-section {
+            display: none;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 1.5rem;
+        }
+
+        .view-section.active {
+            display: grid;
+        }
+
+        .view-section.full-width {
+            grid-template-columns: 1fr;
+        }
+
+        .panel-box {
+            background: #1b112f;
+            border: 2px solid var(--border-purple);
+            box-shadow: 4px 4px 0px #0b0514;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .panel-box h3 {
+            font-size: 0.55rem;
+            color: var(--accent-pink);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Timer UI */
+        .timer-display {
+            font-size: 2.2rem;
+            text-align: center;
+            color: var(--accent-gold);
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg-deep);
+            border: 2px solid var(--accent-purple);
+            text-shadow: 2px 2px 0px #5c4113;
+        }
+
+        .timer-presets {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        /* Running Star Track */
+        .track-container {
+            position: relative;
+            height: 80px;
+            background: var(--bg-deep);
+            border: 2px solid var(--accent-purple);
+            margin-bottom: 1rem;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .runner-icon {
+            position: absolute;
+            left: 10px;
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            transition: left 0.3s linear;
+        }
+
+        .track-line {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            border-bottom: 2px dashed var(--accent-purple);
+            opacity: 0.5;
+        }
+
+        /* Water Hydration Tracker Cups */
+        .water-grid {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .water-cup-btn {
+            background: var(--bg-deep);
+            border: 2px solid var(--accent-purple);
+            padding: 0.5rem 0.65rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.45rem;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #0b0514;
+            color: var(--text-light);
+        }
+
+        .water-cup-btn.filled {
+            background: var(--accent-pink);
+            border-color: #ff9ee2;
+            color: white;
+        }
+
+        /* Tasks */
+        .task-input-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pixel-input {
+            flex: 1;
+            background: var(--bg-deep);
+            border: 2px solid var(--accent-purple);
+            padding: 0.6rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.45rem;
+            color: var(--text-light);
+        }
+
+        .pixel-input:focus {
+            outline: none;
+            border-color: var(--accent-pink);
+        }
+
+        .task-list {
+            list-style: none;
+            max-height: 280px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .task-item {
+            background: var(--bg-deep);
+            border: 2px solid var(--border-purple);
+            padding: 0.6rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.4rem;
+        }
+
+        .task-item.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        /* Notes & Flute Cards */
+        .notes-textarea {
+            width: 100%;
+            height: 280px;
+            background: var(--bg-deep);
+            border: 2px solid var(--accent-purple);
+            padding: 0.75rem;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 0.45rem;
+            line-height: 24px;
+            resize: none;
+            color: var(--text-light);
+        }
+
+        .flute-card {
+            background: var(--bg-deep);
+            border: 2px solid var(--accent-purple);
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1.5rem;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #0b0514;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Wardrobe / Avatar Customization Styles */
+        .wardrobe-container {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.5rem;
+        }
+
+        .avatar-preview-box {
+            background: #1b112f;
+            border: 2px solid var(--border-purple);
+            padding: 1.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .avatar-canvas {
+            width: 180px;
+            height: 220px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+            border: 2px dashed var(--accent-purple);
+            background: var(--bg-deep);
+            padding: 0.5rem;
+        }
+
+        .wardrobe-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .wardrobe-item {
+            background: #1b112f;
+            border: 2px solid var(--border-purple);
+            padding: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 2px 2px 0px #0b0514;
+        }
+
+        .wardrobe-item:hover {
+            background: #2b1c47;
+            transform: translateY(-2px);
+        }
+
+        .wardrobe-item.locked {
+            opacity: 0.4;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .wardrobe-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 0.4rem;
+        }
+
+        .wardrobe-item span {
+            display: block;
+            font-size: 0.35rem;
+            color: var(--text-light);
+        }
+
+        /* Footer */
+        .window-footer {
+            background: #1a102e;
+            border-top: 2px solid var(--border-purple);
+            padding: 0.5rem 1.25rem;
+            font-size: 0.4rem;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 900px) {
+            .view-section, .metrics-bar, .wardrobe-container {
+                grid-template-columns: 1fr;
+            }
+            .metrics-bar {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Opening Intro Animation matching exact aesthetic -->
+    <div id="intro-screen">
+        <img src="1000454220.jpg" alt="Stellaris Moon" class="intro-icon">
+        <div class="intro-title">✨ STELLARIS.EXE - LOADING ASTRAL STUDY OS ✨</div>
+        <button class="pixel-btn" onclick="startApp()">ENTER SANCTUARY</button>
+    </div>
+
+    <div class="window-frame">
+        <!-- Window Header -->
+        <div class="window-header">
+            <div class="window-title">
+                <img src="1000454219.jpg" alt="icon" style="width:16px; height:16px;">
+                STELLARIS.EXE — ASTRAL STUDY OS v3.0
+            </div>
+            <div class="window-controls">
+                <div class="win-btn">_</div>
+                <div class="win-btn">□</div>
+                <div class="win-btn">×</div>
+            </div>
+        </div>
+
+        <!-- Top Metrics Dashboard -->
+        <div class="metrics-bar">
+            <div class="metric-box">
+                <div class="metric-title">TOTAL HOURS</div>
+                <div class="metric-value" id="statHours">0.0 HRS</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-title">STUDY MINS</div>
+                <div class="metric-value" id="statMins">0</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-title">POMODOROS</div>
+                <div class="metric-value" id="statPomodoros">0</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-title">WATER CUPS</div>
+                <div class="metric-value" id="statWater">0 / 8</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-title">WARDROBE UNLOCKS</div>
+                <div class="metric-value" id="statUnlocks">1 / 10</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-bar">
+            <button class="nav-tab active" onclick="switchTab('timer')">1. FOCUS TIMER</button>
+            <button class="nav-tab" onclick="switchTab('wardrobe')">2. WARDROBE (AVATAR)</button>
+            <button class="nav-tab" onclick="switchTab('tasks')">3. TASK PLANNER</button>
+            <button class="nav-tab" onclick="switchTab('notes')">4. NOTES & CARDS</button>
+            <button class="nav-tab" onclick="switchTab('sanctuary')">5. SANCTUARY</button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+
+            <!-- TAB 1: FOCUS TIMER & WATER -->
+            <div id="view-timer" class="view-section active">
+                <div class="panel-box">
+                    <h3>⏳ POMODORO FOCUS TIMER</h3>
+                    <div class="timer-presets">
+                        <button class="pixel-btn active" onclick="setTimer(25)">25M</button>
+                        <button class="pixel-btn" onclick="setTimer(10)">10M</button>
+                        <button class="pixel-btn" onclick="setTimer(5)">5M BREAK</button>
+                    </div>
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    
+                    <!-- Running Star Track -->
+                    <div class="track-container">
+                        <img src="1000454219.jpg" alt="Running Star" class="runner-icon" id="runnerIcon">
+                        <div class="track-line"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <button class="pixel-btn" style="flex: 1;" id="startPauseBtn" onclick="toggleTimer()">START</button>
+                        <button class="pixel-btn" style="flex: 1;" onclick="resetTimer()">RESET</button>
+                    </div>
+                    <button class="pixel-btn" style="width: 100%; font-size: 0.45rem;" onclick="logManualTime()">+30 MIN MANUAL LOG</button>
+                </div>
+
+                <div class="panel-box">
+                    <h3>🥛 WATER DRINKING TRACKER</h3>
+                    <p style="font-size: 0.4rem; color: var(--text-dim); margin-bottom: 0.75rem;">Stay hydrated during study sessions! Click cups to log:</p>
+                    <div class="water-grid" id="waterGrid">
+                        <button class="water-cup-btn" onclick="toggleWater(0)">🥛 1</button>
+                        <button class="water-cup-btn" onclick="toggleWater(1)">🥛 2</button>
+                        <button class="water-cup-btn" onclick="toggleWater(2)">🥛 3</button>
+                        <button class="water-cup-btn" onclick="toggleWater(3)">🥛 4</button>
+                        <button class="water-cup-btn" onclick="toggleWater(4)">🥛 5</button>
+                        <button class="water-cup-btn" onclick="toggleWater(5)">🥛 6</button>
+                        <button class="water-cup-btn" onclick="toggleWater(6)">🥛 7</button>
+                        <button class="water-cup-btn" onclick="toggleWater(7)">🥛 8</button>
+                    </div>
+
+                    <div style="margin-top: 1.25rem;">
+                        <h3>🎁 REWARD SYSTEM</h3>
+                        <div style="font-size: 0.4rem; background: var(--bg-deep); padding: 0.75rem; border: 2px solid var(--border-purple); line-height: 1.6;">
+                            Complete a 25-minute focus session or log hours to instantly unlock a new avatar piece in your Wardrobe[cite: 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: WARDROBE (AVATAR CUSTOMIZATION) -->
+            <div id="view-wardrobe" class="view-section">
+                <div class="wardrobe-container" style="grid-column: 1 / -1;">
+                    <div class="avatar-preview-box">
+                        <h3 style="margin-bottom: 0.5rem;">YOUR PIXEL AVATAR</h3>
+                        <img id="activeAvatarImg" src="1000454216.jpg" alt="Avatar" class="avatar-canvas">
+                        <div id="activeAvatarName" style="font-size: 0.45rem; color: var(--accent-gold); margin-bottom: 0.5rem;">Equipped: Angelic White Dress Set</div>
+                        <p style="font-size: 0.35rem; color: var(--text-dim);">Complete focus sessions to unlock more wardrobe items from your collection[cite: 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]!</p>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 0.75rem;">WARDROBE COLLECTION (10 PIECES)</h3>
+                        <div class="wardrobe-grid" id="wardrobeGrid">
+                            <!-- Populated dynamically via JS matching the first 10 user images -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: TASK PLANNER -->
+            <div id="view-tasks" class="view-section full-width">
+                <div class="panel-box">
+                    <h3>📋 ASTRAL STUDY QUESTS</h3>
+                    <div class="task-input-row">
+                        <input type="text" class="pixel-input" id="taskInput" placeholder="Add a study goal...">
+                        <select class="pixel-input" id="subjectSelect" style="flex: 0 0 140px;">
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Psychology">Psychology</option>
+                        </select>
+                        <button class="pixel-btn" onclick="addTask()">ADD</button>
+                    </div>
+                    <ul class="task-list" id="taskList">
+                        <!-- Dynamic items -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- TAB 4: NOTES & FLUTE CARDS -->
+            <div id="view-notes" class="view-section">
+                <div class="panel-box">
+                    <h3>📝 ASTRAL SCRATCHPAD</h3>
+                    <textarea class="notes-textarea" id="scratchpad" placeholder="Jot down notes, formulas, and ideas here... (Auto-saves)"></textarea>
+                </div>
+
+                <div class="panel-box">
+                    <h3>🃏 FLUTE STUDY CARDS</h3>
+                    <div class="flute-card" onclick="flipFluteCard()">
+                        <div id="flutePrompt" style="font-size: 0.5rem; color: var(--accent-pink); margin-bottom: 0.5rem;">CARD I (CLICK TO FLIP)</div>
+                        <div id="fluteText" style="font-size: 0.55rem;">What is the structural law of cellular respiration yield?</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="pixel-btn" style="flex: 1;" onclick="prevFlute()">PREV</button>
+                        <button class="pixel-btn" style="flex: 1;" onclick="nextFlute()">NEXT</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: SANCTUARY -->
+            <div id="view-sanctuary" class="view-section full-width">
+                <div class="panel-box">
+                    <h3>🌙 MOON & STARLIGHT SANCTUARY</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div style="background: var(--bg-deep); border: 2px solid var(--border-purple); padding: 1rem; text-align: center;">
+                            <img src="1000454220.jpg" alt="Moon Sanctuary" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 0.5rem;">
+                            <div style="font-size: 0.45rem; color: var(--accent-gold);">CELESTIAL DREAM MOON</div>
+                        </div>
+                        <div style="background: var(--bg-deep); border: 2px solid var(--border-purple); padding: 1rem; text-align: center;">
+                            <img src="1000454222.jpg" alt="Tamagotchi Pet" style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 0.5rem;">
+                            <div style="font-size: 0.45rem; color: var(--accent-pink);">ASTRAL COMPANION TAMAGOTCHI</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Window Footer -->
+        <div class="window-footer">
+            <span id="footerStatus">Ready • Stellaris OS Online</span>
+            <span>DO WHAT YOU LOVE!</span>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        function startApp() {
+            document.getElementById('intro-screen').classList.add('fade-out');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('view-' + tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Wardrobe Data (First 10 user reference images)
+        const wardrobePieces = [
+            { id: 0, name: "Angelic White Dress Set", img: "1000454216.jpg", unlocked: true },
+            { id: 1, name: "Celestial Halo & Wings", img: "1000454215.jpg", unlocked: false },
+            { id: 2, name: "Blue Cozy Knit & Bear", img: "1000454214.jpg", unlocked: false },
+            { id: 3, name: "Ribbon & Glasses Chic", img: "1000454213.jpg", unlocked: false },
+            { id: 4, name: "Navy Beret & Sweater", img: "1000454212.jpg", unlocked: false },
+            { id: 5, name: "Sprout Leaf & Scarf", img: "1000454211.jpg", unlocked: false },
+            { id: 6, name: "Daisy Flower & Denim", img: "1000454210.jpg", unlocked: false },
+            { id: 7, name: "Sleepy Blueberry Headband", img: "1000454209.jpg", unlocked: false },
+            { id: 8, name: "Headphones & Star Sparkle", img: "1000454208.jpg", unlocked: false },
+            { id: 9, name: "Blue Hydrangea & Bunny", img: "1000454207.jpg", unlocked: false }
+        ];
+
+        let equippedId = 0;
+        let unlockedCount = 1;
+
+        function renderWardrobe() {
+            const grid = document.getElementById('wardrobeGrid');
+            grid.innerHTML = '';
+            wardrobePieces.forEach(p => {
+                const item = document.createElement('div');
+                item.className = `wardrobe-item ${p.unlocked ? '' : 'locked'}`;
+                item.innerHTML = `
+                    <img src="${p.img}" alt="${p.name}">
+                    <span>${p.unlocked ? p.name : '🔒 LOCKED'}</span>
+                `;
+                if(p.unlocked) {
+                    item.onclick = () => equipItem(p.id);
+                }
+                grid.appendChild(item);
+            });
+            document.getElementById('statUnlocks').innerText = `${unlockedCount} / 10`;
+        }
+
+        function equipItem(id) {
+            equippedId = id;
+            const piece = wardrobePieces[id];
+            document.getElementById('activeAvatarImg').src = piece.img;
+            document.getElementById('activeAvatarName').innerText = `Equipped: ${piece.name}`;
+        }
+
+        function unlockNextWardrobePiece() {
+            if(unlockedCount < wardrobePieces.length) {
+                wardrobePieces[unlockedCount].unlocked = true;
+                alert(`🎁 Session Complete! You unlocked a new wardrobe piece: ${wardrobePieces[unlockedCount].name}[cite: 44, 45, 46, 47, 48, 49, 50, 51, 52, 53]! Check your Wardrobe tab.`);
+                unlockedCount++;
+                renderWardrobe();
+            }
+        }
+
+        renderWardrobe();
+
+        // Timer Logic
+        let totalSeconds = 25 * 60;
+        let currentTime = totalSeconds;
+        let timerInterval = null;
+        let isRunning = false;
+        let studyMinsLogged = 0;
+        let pomodorosCompleted = 0;
+
+        function setTimer(mins) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            totalSeconds = mins * 60;
+            currentTime = totalSeconds;
+            updateTimerDisplay();
+            document.getElementById('startPauseBtn').innerText = "START";
+            
+            document.querySelectorAll('.timer-presets .pixel-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(currentTime / 60).toString().padStart(2, '0');
+            const s = (currentTime % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('startPauseBtn');
+            const runner = document.getElementById('runnerIcon');
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btn.innerText = "RESUME";
+            } else {
+                isRunning = true;
+                btn.innerText = "PAUSE";
+
+                timerInterval = setInterval(() => {
+                    if (currentTime > 0) {
+                        currentTime--;
+                        updateTimerDisplay();
+                        
+                        const progress = 1 - (currentTime / totalSeconds);
+                        runner.style.left = `${progress * 80}%`;
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        pomodorosCompleted++;
+                        studyMinsLogged += 25;
+                        updateStats();
+                        unlockNextWardrobePiece();
+                        btn.innerText = "START";
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            currentTime = 25 * 60;
+            updateTimerDisplay();
+            document.getElementById('startPauseBtn').innerText = "START";
+            document.getElementById('runnerIcon').style.left = "10px";
+        }
+
+        function logManualTime() {
+            studyMinsLogged += 30;
+            pomodorosCompleted++;
+            updateStats();
+            unlockNextWardrobePiece();
+        }
+
+        function updateStats() {
+            document.getElementById('statPomodoros').innerText = pomodorosCompleted;
+            document.getElementById('statMins').innerText = studyMinsLogged;
+            const hours = (studyMinsLogged / 60).toFixed(1);
+            document.getElementById('statHours').innerText = `${hours} HRS`;
+        }
+
+        // Water Tracker
+        let waterCount = 0;
+        function toggleWater(index) {
+            const btn = document.querySelectorAll('.water-cup-btn')[index];
+            btn.classList.toggle('filled');
+            waterCount = document.querySelectorAll('.water-cup-btn.filled').length;
+            document.getElementById('statWater').innerText = `${waterCount} / 8`;
+        }
+
+        // Tasks
+        let tasks = [
+            { id: 1, text: "Review Physics Mechanics notes", completed: true },
+            { id: 2, text: "Complete Chemistry problem set", completed: false }
+        ];
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            tasks.forEach(t => {
+                const li = document.createElement('li');
+                li.className = `task-item ${t.completed ? 'completed' : ''}`;
+                li.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" ${t.completed ? 'checked' : ''} onclick="toggleTask(${t.id})">
+                        <span>${t.text}</span>
+                    </div>
+                    <button style="background:none; border:none; cursor:pointer; color:var(--text-light);" onclick="deleteTask(${t.id})">×</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            if(!input.value.trim()) return;
+            tasks.push({ id: Date.now(), text: input.value, completed: false });
+            input.value = '';
+            renderTasks();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+            renderTasks();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        renderTasks();
+
+        // Scratchpad Auto-save
+        const scratchpad = document.getElementById('scratchpad');
+        scratchpad.value = localStorage.getItem('stellaris_notes') || '';
+        scratchpad.addEventListener('input', () => {
+            localStorage.setItem('stellaris_notes', scratchpad.value);
+        });
+
+        // Flute Cards
+        const fluteCards = [
+            { q: "What is the structural law of cellular respiration yield?", a: "32-38 ATP molecules per glucose molecule." },
+            { q: "What is the primary factor in naturalistic observation?", a: "Minimizing the observer effect." }
+        ];
+        let fluteIdx = 0;
+        let showingAnswer = false;
+
+        function flipFluteCard() {
+            showingAnswer = !showingAnswer;
+            document.getElementById('flutePrompt').innerText = showingAnswer ? "ANSWER" : "CARD (CLICK TO FLIP)";
+            document.getElementById('fluteText').innerText = showingAnswer ? fluteCards[fluteIdx].a : fluteCards[fluteIdx].q;
+        }
+
+        function nextFlute() {
+            fluteIdx = (fluteIdx + 1) % fluteCards.length;
+            showingAnswer = false;
+            document.getElementById('flutePrompt').innerText = "CARD (CLICK TO FLIP)";
+            document.getElementById('fluteText').innerText = fluteCards[fluteIdx].q;
+        }
+
+        function prevFlute() {
+            fluteIdx = (fluteIdx - 1 + fluteCards.length) % fluteCards.length;
+            showingAnswer = false;
+            document.getElementById('flutePrompt').innerText = "CARD (CLICK TO FLIP)";
+            document.getElementById('fluteText').innerText = fluteCards[fluteIdx].q;
+        }
+    </script>
+</body>
+</html>
